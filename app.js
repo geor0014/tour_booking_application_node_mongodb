@@ -6,6 +6,12 @@ const app = express();
 // middleware
 app.use(express.json())
 
+app.use((req,res,next)=>{
+    // every time we make a request, we want to see the time of the request
+    req.requestTime = new Date().toISOString()
+    next()
+})
+
 const port = process.env.PORT || 3000; 
 
 //  we read the file here because we want to read it only once when the server starts and not every time we make a request
