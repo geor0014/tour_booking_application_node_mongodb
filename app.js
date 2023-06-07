@@ -12,6 +12,8 @@ const port = process.env.PORT || 3000;
 //  we read the file here because we want to read it only once when the server starts and not every time we make a request
 const tours = JSON.parse(fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`))
 
+const tourRouter = express.Router()
+const userRouter = express.Router()
 
 // '//////////////////Route handlers 
 const getAllTours = (req,res)=>{
@@ -110,14 +112,24 @@ const deleteUser = (req,res)=>{
         status:'error'
     })
 }
+const updateUser = (req,res)=>{
+    res.status(500).json({
+        status:'error'
+    })
+}
 
 
 // ////////////////////////////// Routes
-app.route('/api/v1/tours').get(getAllTours).post(createTour)
-app.route('/api/v1/tours/:id').get(getTour).patch(updateTour).delete(deleteTour)
 
-app.route('api/v1/users').get(getAllUsers).post(createUser)
-app.route('api/v1/users/:id').get(getUser).patch(updateUser).delete(deleteUser)
+tourRouter.route('/').get(getAllTours).post(createTour)
+tourRouter.route('/:id').get(getTour).patch(updateTour).delete(deleteTour)
+
+userRouter.route('/').get(getAllUsers).post(createUser)
+userRouter.route('/:id').get(getUser).patch(updateUser).delete(deleteUser)
+
+app.use('/api/v1/tours',tourRouter)
+app.use('/api/v1/users',userRouter)
+
 //////////////////////////////////Server
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
