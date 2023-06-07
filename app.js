@@ -1,22 +1,19 @@
 const fs  = require('fs');
 const express = require('express');
-const { get } = require('http');
+const morgan = require('morgan')
 
 const app = express();
-// middleware
+//////////////////////////// middleware
+app.use(morgan('dev'))
 app.use(express.json())
-
-app.use((req,res,next)=>{
-    // every time we make a request, we want to see the time of the request
-    req.requestTime = new Date().toISOString()
-    next()
-})
 
 const port = process.env.PORT || 3000; 
 
 //  we read the file here because we want to read it only once when the server starts and not every time we make a request
 const tours = JSON.parse(fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`))
 
+
+// '//////////////////Route handlers 
 const getAllTours = (req,res)=>{
     res.status(200).json({
         status: 'success',
@@ -93,9 +90,11 @@ const deleteTour = (req,res)=>{
     })
 }
 
+// ////////////////////////////// Routes
 app.route('/api/v1/tours').get(getAllTours).post(createTour)
 app.route('/api/v1/tours/:id').get(getTour).patch(updateTour).delete(deleteTour)
 
+//////////////////////////////////Server
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
