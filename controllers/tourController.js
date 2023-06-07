@@ -2,6 +2,19 @@ const fs  = require('fs');
 //  we read the file here because we want to read it only once when the server starts and not every time we make a request
 const tours = JSON.parse(fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`))
 
+exports.checkId = (req,res,next,value) => {
+     // convert the string to a number
+     const id = req.params.id *1
+     console.log(`ID is ${value}`);
+     if (id > tours.length){
+         return res.status(404).json({
+             status:"unsuccessful",
+             message:"Invalid ID"
+         })
+     }
+     next()
+}
+
 exports.getAllTours = (req,res)=>{
     res.status(200).json({
         status: 'success',
@@ -14,15 +27,8 @@ exports.getAllTours = (req,res)=>{
 }
 
 exports.getTour = (req,res)=>{
-    // convert the string to a number
+   
     const id = req.params.id * 1
-
-    if (id > tours.length){
-        return res.status(404).json({
-            status:"unsuccessful",
-            message:"Invalid ID"
-        })
-    }
     // find creates a new array with the elements that pass the test
     const tour  = tours.find(t => t.id===id)
 
@@ -48,13 +54,6 @@ exports.createTour = (req,res) =>{
 }
 
 exports.updateTour = (req,res)=>{
-    if (req.params.id * 1 > tours.length){
-        return res.status(404).json({
-            status:"unsuccessful",
-            message:"Invalid ID"
-        })
-    }
-
    res.status(200).json({
          status:"success",
             data:{
@@ -65,13 +64,6 @@ exports.updateTour = (req,res)=>{
 }
 
 exports.deleteTour = (req,res)=>{
-    if (req.params.id * 1 > tours.length){
-        return res.status(404).json({
-            status:"unsuccessful",
-            message:"Invalid ID"
-        })
-    }
-
     res.status(204).json({
         status:"success",
         data:null
