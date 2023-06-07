@@ -90,10 +90,34 @@ const deleteTour = (req,res)=>{
     })
 }
 
+const getAllUsers = (req,res)=>{
+    res.status(500).json({
+        status:'error'
+    })
+}
+const getUser = (req,res)=>{
+    res.status(500).json({
+        status:'error'
+    })
+}
+const createUser = (req,res)=>{
+    res.status(500).json({
+        status:'error'
+    })
+}
+const deleteUser = (req,res)=>{
+    res.status(500).json({
+        status:'error'
+    })
+}
+
+
 // ////////////////////////////// Routes
 app.route('/api/v1/tours').get(getAllTours).post(createTour)
 app.route('/api/v1/tours/:id').get(getTour).patch(updateTour).delete(deleteTour)
 
+app.route('api/v1/users').get(getAllUsers).post(createUser)
+app.route('api/v1/users/:id').get(getUser).patch(updateUser).delete(deleteUser)
 //////////////////////////////////Server
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
