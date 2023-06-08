@@ -3,8 +3,14 @@ const morgan = require('morgan')
 
 const app = express();
 //////////////////////////// middleware
-app.use(morgan('dev'))
+// this if statement is for development mode only
+if(process.env.NODE_ENV === 'development'){
+    // morgan is a middleware that logs the request to the console
+    app.use(morgan('dev'))
+}
 app.use(express.json())
+app.use(express.static(`${__dirname}/public`))
+
 /////////////////////////// routers 
 const userRouter = require('./routes/userRoutes')
 const tourRouter = require('./routes/tourRoutes')
