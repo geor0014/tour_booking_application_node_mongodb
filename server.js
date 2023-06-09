@@ -1,3 +1,4 @@
+/* eslint-disable import/no-extraneous-dependencies */
 const mongoose = require('mongoose');
 
 const env = require('dotenv');
@@ -13,7 +14,6 @@ mongoose
     useUnifiedTopology: true,
   })
   .then(() => console.log('DB connected successfully'));
-
 
 const port = process.env.PORT || 3000;
 
