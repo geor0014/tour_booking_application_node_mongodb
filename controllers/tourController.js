@@ -4,8 +4,21 @@ const Tour = require('../models/tourModel');
 
 exports.getAllTours = async (req, res) => {
   try {
-    const tours = await Tour.find();
+    // Build query
+    ////////////////filtering
+    const queryObj = { ...req.query };
+    const excludedFields = ['page', 'sort', 'limit', 'field'];
+    // delete elements that match array elements from query
+    excludedFields.forEach(el => delete queryObj[el]);
+    /////////////////advanced filtering
+    let queryStr = JSON.stringify(queryObj);
+    // this is a regular expression that matches gte, gt, lte, lt and replaces them with $gte, $gt, $lte, $lt
+    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
 
+    const query = Tour.find(JSON.parse(queryStr));
+    // Execute query
+    const tours = await query;
+    // Send response
     res.status(200).json({
       status: 'success',
       results: tours.length,
