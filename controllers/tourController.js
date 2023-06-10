@@ -2,6 +2,12 @@
 // const tours = JSON.parse(fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`))
 const Tour = require('../models/tourModel');
 
+exports.aliasTopTours = (req, res, next) => {
+  req.query.limit = '5';
+  req.query.sort = '-ratingsAverage,price';
+  next();
+};
+
 exports.getAllTours = async (req, res) => {
   try {
     // Build query
@@ -21,7 +27,7 @@ exports.getAllTours = async (req, res) => {
       //  if there are multiple fields we split them by comma and join them by space
       const sortBy = req.query.sort.split(',').join(' ');
       //  if user specifies a sort query, we sort by that field
-      query = query.sort(req.query.sort);
+      query = query.sort(sortBy);
     } else {
       // otherwise we sort by createdAt field in descending order
       query = query.sort('-createdAt');
