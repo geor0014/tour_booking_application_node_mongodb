@@ -34,6 +34,19 @@ exports.getAllTours = async (req, res) => {
     } else {
       query = query.select('-__v -createdAt');
     }
+    ///////////////////////// pagination
+    // if user specifies a page query, we limit the results to 10 and skip the first 10 * page - 1 results
+    const page = req.query.page * 1 || 1;
+    const limit = req.query.limit * 1 || 100;
+    // the formula for skip is (page - 1) * limit because if we are on page 2, we want to skip the first 10 results (page 1) and then show the next 10 results (limit)
+    const skip = (page - 1) * limit;
+    query = query.skip(skip).limit(limit);
+
+    if (req.query.page) {
+      // .countDocuments() is the same as .count() but it returns a promise
+      const numberOfTours = await Tour.countDocuments();
+      if (skip >= numberOfTours) throw new Error('This page does not exist');
+    }
     // Execute query
     const tours = await query;
     // Send response
