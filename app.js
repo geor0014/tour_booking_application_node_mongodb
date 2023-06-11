@@ -8,6 +8,7 @@ if (process.env.NODE_ENV === 'development') {
   // morgan is a middleware that logs the request to the console
   app.use(morgan('dev'));
 }
+
 app.use(express.json());
 app.use(express.static(`${__dirname}/public`));
 
@@ -17,5 +18,13 @@ const tourRouter = require('./routes/tourRoutes');
 
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+
+// we put this middleware here because we want to run it after all the other routes are run and if none of the routes match, then we run this middleware
+app.all('*', (req, res, next) => {
+  res.status(404).json({
+    status: 'fail',
+    message: `Can't find ${req.originalUrl} on this server`,
+  });
+});
 
 module.exports = app;
