@@ -1,6 +1,8 @@
 /* eslint-disable import/no-extraneous-dependencies */
 const mongoose = require('mongoose');
 
+const slugify = require('slugify');
+
 const tourSchema = new mongoose.Schema(
   {
     name: {
@@ -9,6 +11,7 @@ const tourSchema = new mongoose.Schema(
       unique: true,
       trim: true, // remove all white spaces in the beginning and end of the string
     },
+    slug: String,
     duration: {
       type: Number,
       required: [true, 'A tour must have a duration'],
@@ -63,6 +66,12 @@ const tourSchema = new mongoose.Schema(
 // we need to use a function here because we need the this keyword
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7; // this refers to the current document
+});
+
+// DOCUMENT MIDDLEWARE: runs before .save() and .create() but not .insertMany()
+tourSchema.pre('save', function (next) {
+  this.slug = slugify(this.name, { Lower: true });
+  next();
 });
 
 const Tour = mongoose.model('Tour', tourSchema);
