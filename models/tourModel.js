@@ -56,6 +56,10 @@ const tourSchema = new mongoose.Schema(
       default: Date.now(),
     },
     startDates: [Date],
+    secretTour: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     toJSON: { virtuals: true }, // when data is outputted as JSON (e.g. when we send data to the client), we want the virtual properties to be included
@@ -71,6 +75,13 @@ tourSchema.virtual('durationWeeks').get(function () {
 // DOCUMENT MIDDLEWARE: runs before .save() and .create() but not .insertMany()
 tourSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { Lower: true });
+  next();
+});
+
+// QUERY MIDDLEWARE (e.g. Tour.find(), Tour.findOne(), Tour.findOneAndUpdate(), etc.): runs before the query is executed
+tourSchema.pre(/^find/, function (next) {
+  // /^find/ means that all the strings that start with find will be executed
+  this.find({ secretTour: { $ne: true } });
   next();
 });
 
