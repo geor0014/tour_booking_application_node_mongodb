@@ -17,6 +17,16 @@ mongoose
 const port = process.env.PORT || 3000;
 
 //////////////////////////////////Server
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`Server running on port ${port}`);
+});
+
+// Handle unhandled promise rejections globally (e.g. DB connection error) - this is a safety net
+process.on('unhandledRejection', err => {
+  console.log('UNHANDLED REJECTION! ⚠️⚠️ Shutting down...');
+  console.log(err.name, err.message);
+  server.close(() => {
+    // exit the application
+    process.exit(1); // 0 = success, 1 = uncaught exception
+  });
 });
