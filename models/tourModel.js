@@ -85,6 +85,11 @@ tourSchema.pre(/^find/, function (next) {
   next();
 });
 
+// AGGREGATION MIDDLEWARE (e.g. Tour.aggregate()): runs before the aggregation is executed
+tourSchema.pre('aggregate', function (next) {
+  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  next();
+});
 const Tour = mongoose.model('Tour', tourSchema);
 
 module.exports = Tour;
