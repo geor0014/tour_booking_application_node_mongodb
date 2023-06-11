@@ -37,6 +37,12 @@ const handleDuplicateFieldsDB = err => {
   return new AppError(message, 400);
 };
 
+const handleValidationErrorDB = err => {
+  const errors = Object.values(err.errors).map(el => el.message); // get all the error messages
+  const message = `Invalid input data. ${errors.join('. ')}`;
+  return new AppError(message, 400);
+};
+
 module.exports = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500; // if err.statusCode is undefined, then set it to 500
   err.status = err.status || 'error'; // if err.status is undefined, then set it to 'error'
@@ -48,7 +54,10 @@ module.exports = (err, req, res, next) => {
       ...err,
     };
     if (error.name === 'CastError') error = handleCastErrorDB(error);
-    else if (error.code === 11000) error = handleDuplicateFieldsDB(error);
+    if (error.code === 11000) error = handleDuplicateFieldsDB(error);
+    if (error.name === 'ValidationError') {
+      error = handleValidationErrorDB(error);
+    }
 
     sendErrorProd(error, res);
   }
