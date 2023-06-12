@@ -8,6 +8,10 @@ const jwt = require('jsonwebtoken');
 
 const AppError = require('../utils/appError');
 
+const sendEmail = require('../utils/email');
+
+const crypto = require('crypto');
+
 const signToken = id => {
   // create a token with the user id and secret key and return it
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -123,3 +127,76 @@ exports.restrictTo = (...roles) => {
     next();
   };
 };
+
+// function to update password for logged in user only
+exports.forgotPassword = catchAsync(async (req, res, next) => {
+  // GET USER BASED ON POSTED EMAIL
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return next(new AppError('There is no user with that email address', 404));
+  }
+  // GENERATE RANDOM TOKEN
+  const resetToken = user.createPasswordResetToken();
+  await user.save({ validateBeforeSave: false });
+  // SEND IT TO USER'S EMAIL
+  const resetURL = `${req.protocol}://${req.get(
+    'host',
+  )}/api/v1/users/resetPassword/${resetToken}`;
+
+  const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to ${resetURL}.\nIf you didn't forget your password, please ignore this email!`;
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: 'Your password reset token (valid for 10 minutes)',
+      message,
+    });
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Token sent to email!',
+    });
+  } catch (err) {
+    user.passwordResetToken = undefined;
+    user.passwordResetExpiresAt = undefined;
+    await user.save({ validateBeforeSave: false });
+    return next(
+      new AppError(
+        'There was an error sending the email. Please try again later!',
+        500,
+      ),
+    );
+  }
+});
+
+// function to reset password after user forgot password and requested a reset token
+exports.resetPassword = catchAsync(async (req, res, next) => {
+  // GET USER BASED ON THE TOKEN
+  // because the token is encrypted in the database, but not incypted in the user mail, we need to encrypt the token sent by the user and then compare it to the token in the database
+  const hashedToken = crypto
+    .createHash('sha256')
+    .update(req.params.token)
+    .digest('hex');
+  // we find the user based on the hashed token and check if the token has not expired yet (passwordResetExpiresAt > Date.now())
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpiresAt: { $gt: Date.now() },
+  });
+  // IF TOKEN HAS NOT EXPIRED AND THERE IS A USER, SET THE NEW PASSWORD
+  if (!user) {
+    return next(new AppError('Token is invalid or has expired', 400));
+  }
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpiresAt = undefined;
+  await user.save();
+  // UPDATE CHANGEDPASSWORDAT PROPERTY FOR THE USER
+
+  // LOG THE USER IN, SEND JWT
+  const token = signToken(user._id);
+  res.status(200).json({
+    status: 'success',
+    token,
+  });
+});

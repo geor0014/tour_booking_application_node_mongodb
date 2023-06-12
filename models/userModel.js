@@ -4,6 +4,8 @@ const validator = require('validator');
 
 const bcrypt = require('bcryptjs');
 
+const crypto = require('crypto');
+
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -42,6 +44,8 @@ const userSchema = new mongoose.Schema({
     },
   },
   passwordChangedAt: Date,
+  passwordResetToken: String,
+  passwordResetExpiresAt: Date,
 });
 
 // encrypt password before saving to database
@@ -54,6 +58,17 @@ userSchema.pre('save', async function (next) {
 
   // delete passwordConfirm field from database as it is only required for validation
   this.passwordConfirm = undefined;
+
+  next();
+});
+
+// set passwordChangedAt property to current time if password is modified
+userSchema.pre('save', function (next) {
+  // the isNew property is true when a new document is created
+  if (!this.isModified('password') || this.isNew) return next();
+
+  // subtract 1 second from the current time to make sure that the passwordChangedAt property is always set after the token is issued
+  this.passwordChangedAt = Date.now() - 1000;
 
   next();
 });
@@ -80,6 +95,24 @@ userSchema.methods.changedPasswordAfterTokenIssued = function (JWTimestamp) {
   }
   // false means password was not changed
   return false;
+};
+
+// instance method to create a password reset token
+userSchema.methods.createPasswordResetToken = function () {
+  // 32 is the length of the token in bytes and then we convert it to hex to get a string value
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  // encrypt the reset token and save it to the database
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  // set the password reset token expiry time to 10 minutes
+  this.passwordResetExpiresAt = Date.now() + 10 * 60 * 1000;
+
+  // return the unencrypted reset token
+  return resetToken;
 };
 
 const User = mongoose.model('User', userSchema);
