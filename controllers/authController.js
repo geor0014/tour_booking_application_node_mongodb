@@ -1,3 +1,5 @@
+const { promisify } = require('util');
+
 const User = require('../models/userModel');
 
 const catchAsync = require('../utils/catchAsync');
@@ -59,4 +61,49 @@ exports.login = catchAsync(async (req, res, next) => {
     status: 'success',
     token,
   }); // 200: OK
+});
+
+// function to protect routes from unauthenticated users
+exports.protect = catchAsync(async (req, res, next) => {
+  //  GET TOKEN AND CHECK IF IT EXISTS
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+  // if token does not exist then return error message
+  if (!token) {
+    return next(
+      new AppError('You are not logged in! Please log in to get access.', 401),
+    );
+  }
+
+  // VERIFY TOKEN
+  // promisify(jwt.verify) returns a function which we call with token and secret key
+  // we need to use promisify because jwt.verify does not return a promise but we want to use async await syntax instead of callback hell
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+  // CHECK IF USER STILL EXISTS
+  // we use decoded.id because jwt.verify returns an object with id property
+  const currentUser = await User.findById(decoded.id);
+  if (!currentUser) {
+    return next(
+      new AppError(
+        'The user belonging to this token does not exist anymore!',
+        401,
+      ),
+    );
+  }
+
+  // CHECK IF USER CHANGED PASSWORD AFTER THE TOKEN WAS ISSUED
+  if (currentUser.changedPasswordAfterTokenIssued(decoded.iat)) {
+    return next(
+      new AppError('User recently changed password! Please log in again.', 401),
+    );
+  }
+  // GRANT ACCESS TO PROTECTED ROUTE
+  req.user = currentUser;
+  next();
 });
