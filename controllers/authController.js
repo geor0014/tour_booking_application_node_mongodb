@@ -19,6 +19,18 @@ const signToken = id => {
   }); // 90 days
 };
 
+const createSendToken = (user, statusCode, res) => {
+  const token = signToken(user._id);
+
+  res.status(statusCode).json({
+    status: 'success',
+    token,
+    data: {
+      user,
+    },
+  });
+};
+
 // function to create and send token to client
 exports.signup = catchAsync(async (req, res, next) => {
   const newUser = await User.create({
@@ -30,15 +42,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   });
 
   // create a token
-  const token = signToken(newUser._id);
-
-  res.status(201).json({
-    status: 'success',
-    token,
-    data: {
-      user: newUser,
-    },
-  }); // 201: Created
+  createSendToken(newUser, 201, res);
 });
 
 // function to login user and send token to client
@@ -61,11 +65,7 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   // if everything is ok, send token to client
-  const token = signToken(user._id);
-  res.status(200).json({
-    status: 'success',
-    token,
-  }); // 200: OK
+  createSendToken(user, 200, res);
 });
 
 // function to protect routes from unauthenticated users
@@ -192,11 +192,22 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   user.passwordResetExpiresAt = undefined;
   await user.save();
   // UPDATE CHANGEDPASSWORDAT PROPERTY FOR THE USER
-
   // LOG THE USER IN, SEND JWT
-  const token = signToken(user._id);
-  res.status(200).json({
-    status: 'success',
-    token,
-  });
+  createSendToken(user, 200, res);
+});
+
+// function to update password for logged in user only
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  // GET USER FROM COLLECTION
+  const user = await User.findById(req.user.id).select('+password');
+  // CHECK IF POSTED PASSWORD IS CORRECT
+  if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {
+    return next(new AppError('Your current password is wrong', 401));
+  }
+  // IF SO, UPDATE PASSWORD
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  await user.save();
+  // LOG USER IN, SEND JWT
+  createSendToken(user, 200, res);
 });

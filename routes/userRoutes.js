@@ -14,12 +14,18 @@ router
   .patch(userController.updateUser)
   .delete(userController.deleteUser);
 
-router.route('/signup').post(authController.signup);
+router.post('/signup', authController.signup);
 
-router.route('/login').post(authController.login);
+router.post('/login', authController.login);
 
-router.route('/forgotPassword').post(authController.forgotPassword);
+router.post('/forgotPassword', authController.forgotPassword);
 
-router.route('/resetPassword/:token').patch(authController.resetPassword);
+router.patch('/resetPassword/:token', authController.resetPassword);
+
+router.put(
+  '/updateMyPassword',
+  authController.protect,
+  authController.updatePassword,
+);
 
 module.exports = router;
