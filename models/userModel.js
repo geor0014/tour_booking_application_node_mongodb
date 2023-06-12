@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 
 const validator = require('validator');
 
+const bcrypt = require('bcryptjs');
+
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -35,6 +37,18 @@ const userSchema = new mongoose.Schema({
   },
 });
 
+userSchema.pre('save', async function (next) {
+  // check if password is modified or not if not then return next
+  if (!this.isModified('password')) return next();
+
+  // else if password is modified then hash the password
+  this.password = await bcrypt.hash(this.password, 12);
+
+  // delete passwordConfirm field from database as it is only required for validation
+  this.passwordConfirm = undefined;
+
+  next();
+});
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;
