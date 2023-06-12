@@ -22,6 +22,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     email: req.body.email,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
+    role: req.body.role,
   });
 
   // create a token
@@ -107,3 +108,18 @@ exports.protect = catchAsync(async (req, res, next) => {
   req.user = currentUser;
   next();
 });
+
+// function to restrict access to certain routes based on user role
+exports.restrictTo = (...roles) => {
+  return (req, res, next) => {
+    // roles is an array ['admin', 'lead-guide']
+    // check if user role is in roles array
+    if (!roles.includes(req.user.role)) {
+      // the req.user.role is set in the protect middleware
+      return next(
+        new AppError('You do not have permission to perform this action', 403),
+      );
+    }
+    next();
+  };
+};
