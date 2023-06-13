@@ -28,4 +28,5 @@ router.put(
   authController.updatePassword,
 );
 
+router.put('/updateMe', authController.protect, userController.updateMe);
 module.exports = router;
