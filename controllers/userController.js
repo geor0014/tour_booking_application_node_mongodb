@@ -16,12 +16,6 @@ const filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
-exports.getAllUsers = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-  });
-};
-
 exports.updateMe = cathAsync(async (req, res, next) => {
   // CREATE ERROR IF USER POSTS PASSWORD DATA
   if (req.body.password || req.body.passwordConfirm) {
@@ -57,16 +51,17 @@ exports.deleteMe = cathAsync(async (req, res, next) => {
   });
 });
 
-exports.getUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-  });
-};
 exports.createUser = (req, res) => {
   res.status(500).json({
     status: 'error',
+    message: 'This route is not defined! Please use /signup instead',
   });
 };
+
+exports.getAllUsers = factory.getAll(User);
+
+exports.getUser = factory.getOne(User);
+
 exports.deleteUser = factory.deleteOne(User);
 
 exports.updateUser = factory.updateOne(User);

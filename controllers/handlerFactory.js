@@ -1,5 +1,6 @@
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const APIFeatures = require('../utils/apiFeatues');
 
 exports.deleteOne = Model =>
   catchAsync(async (req, res, next) => {
@@ -40,6 +41,50 @@ exports.createOne = Model =>
 
     res.status(201).json({
       status: 'success',
+      data: {
+        data: doc,
+      },
+    });
+  });
+
+exports.getOne = (Model, popOptions) =>
+  catchAsync(async (req, res, next) => {
+    // we create a query variable and set it to the Model.findById(req.params.id)
+    let query = Model.findById(req.params.id);
+    // we check if there is a popOptions, if there is, then we populate the query with the popOptions
+    if (popOptions) query = query.populate(popOptions);
+    const doc = await query;
+
+    if (!doc) {
+      return next(new AppError('No document found with that ID', 404));
+    }
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        data: doc,
+      },
+    });
+  });
+
+exports.getAll = Model =>
+  catchAsync(async (req, res, next) => {
+    // To allow for nested GET reviews on tour (hack)
+    let filter = {};
+    // if there is a tourId in the params, then we will filter by tourId in the query string
+    if (req.params.tourId) filter = { tour: req.params.tourId };
+
+    const features = new APIFeatures(Model.find(filter), req.query)
+      .filter()
+      .sort()
+      .limit()
+      .paginate();
+
+    const doc = await features.query;
+    // Send response
+    res.status(200).json({
+      status: 'success',
+      results: doc.length,
       data: {
         data: doc,
       },
