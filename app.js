@@ -14,6 +14,8 @@ const mongoSanitize = require('express-mongo-sanitize');
 
 const xss = require('xss-clean');
 
+const hpp = require('hpp');
+
 const app = express();
 
 //////////////////////////// middleware
@@ -48,7 +50,20 @@ app.use(
 app.use(mongoSanitize());
 // Data sanitization against XSS (cross site scripting) attacks (e.g. <script>alert('hello');</script>)
 app.use(xss());
-
+// Parameter pollution: removes duplicate parameters from the query string (e.g. /api/v1/tours?sort=duration&sort=price)
+app.use(
+  hpp({
+    // whitelist is an array of properties that we want to allow duplicates for
+    whitelist: [
+      'duration',
+      'ratingsQuantity',
+      'ratingsAverage',
+      'maxGroupSize',
+      'difficulty',
+      'price',
+    ],
+  }),
+);
 // serve static files
 app.use(express.static(`${__dirname}/public`));
 
