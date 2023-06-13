@@ -82,6 +82,30 @@ const tourSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    startLocation: {
+      // GeoJSON is a special format for defining geospatial data (e.g. coordinates)
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'], // only one value is allowed for the type field
+      },
+      coordinates: [Number],
+      address: String,
+      description: String,
+    },
+    locations: [
+      {
+        type: {
+          type: String, // type of the location
+          default: 'Point',
+          enum: ['Point'], // only one value is allowed for the type field
+        },
+        coordinates: [Number], // coordinates of the location
+        address: String, // address of the location
+        description: String, // description of the location
+        day: Number, // day of the tour when the location is visited
+      },
+    ],
   },
   {
     toJSON: { virtuals: true }, // when data is outputted as JSON (e.g. when we send data to the client), we want the virtual properties to be included
