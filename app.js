@@ -70,9 +70,11 @@ app.use(express.static(`${__dirname}/public`));
 /////////////////////////// routers
 const userRouter = require('./routes/userRoutes');
 const tourRouter = require('./routes/tourRoutes');
+const reviewRouter = require('./routes/reviewRoutes');
 
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/reviews', reviewRouter);
 
 // we put this middleware here because we want to run it after all the other routes are run and if none of the routes match, then we run this middleware
 app.all('*', (req, res, next) => {
