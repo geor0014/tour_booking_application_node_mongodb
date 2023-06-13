@@ -19,25 +19,13 @@ exports.getAllReviews = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.createReview = catchAsync(async (req, res, next) => {
+exports.setTourUserIds = (req, res, next) => {
   // if there is no tour or user in the body, then we will add it to the body
   if (!req.body.tour) req.body.tour = req.params.tourId;
   if (!req.body.user) req.body.user = req.user.id;
 
-  const newReview = await Review.create({
-    review: req.body.review,
-    rating: req.body.rating,
-    user: req.user.id,
-    tour: req.body.tour,
-  });
-
-  res.status(201).json({
-    status: 'success',
-    data: {
-      review: newReview,
-    },
-  });
-});
+  next();
+};
 
 exports.getReview = catchAsync(async (req, res, next) => {
   const review = await Review.findById(req.params.id);
@@ -54,22 +42,8 @@ exports.getReview = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.updateReview = catchAsync(async (req, res, next) => {
-  const review = await Review.findByIdAndUpdate({
-    review: req.body.review,
-    rating: req.body.rating,
-  });
+exports.createReview = factory.createOne(Review);
 
-  if (!review) {
-    return next(new AppError('No review found with that ID', 404));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      review,
-    },
-  });
-});
+exports.updateReview = factory.updateOne(Review);
 
 exports.deleteReview = factory.deleteOne(Review);
