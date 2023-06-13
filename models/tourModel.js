@@ -5,6 +5,8 @@ const slugify = require('slugify');
 
 const validator = require('validator');
 
+const User = require('./userModel');
+
 const tourSchema = new mongoose.Schema(
   {
     name: {
@@ -104,6 +106,12 @@ const tourSchema = new mongoose.Schema(
         address: String, // address of the location
         description: String, // description of the location
         day: Number, // day of the tour when the location is visited
+      },
+    ],
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
       },
     ],
   },
