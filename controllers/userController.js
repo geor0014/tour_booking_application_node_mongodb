@@ -1,6 +1,7 @@
 const cathAsync = require('../utils/catchAsync');
 const User = require('../models/userModel');
 const AppError = require('../utils/appError');
+const factory = require('./handlerFactory');
 
 const filterObj = (obj, ...allowedFields) => {
   const newObj = {};
@@ -66,11 +67,8 @@ exports.createUser = (req, res) => {
     status: 'error',
   });
 };
-exports.deleteUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-  });
-};
+exports.deleteUser = factory.deleteOne(User);
+
 exports.updateUser = (req, res) => {
   res.status(500).json({
     status: 'error',
