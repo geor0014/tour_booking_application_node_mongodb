@@ -124,6 +124,14 @@ tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7; // this refers to the current document
 });
 
+// VIRTUAL POPULATE
+// this will populate the reviews field with the data from the Review model
+tourSchema.virtual('reviews', {
+  ref: 'Review', // the model to reference
+  foreignField: 'tour', // the field in the Review model that will be used to match the current tour
+  localField: '_id', // the field in the current tour that will be used to match the Review model
+});
+
 // DOCUMENT MIDDLEWARE: runs before .save() and .create() but not .insertMany()
 tourSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { Lower: true });
@@ -137,7 +145,6 @@ tourSchema.pre(/^find/, function (next) {
     path: 'guides', // the field that we want to populate with data from the User model
     select: '-__v -passwordChangedAt', // exclude the __v and passwordChangedAt fields
   });
-
   next();
 });
 
