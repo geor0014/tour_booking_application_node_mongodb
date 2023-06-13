@@ -8,13 +8,19 @@ const globalErrorHandler = require('./controllers/errorController');
 
 const rateLimit = require('express-rate-limit');
 
+const helmet = require('helmet');
+
 const app = express();
+
 //////////////////////////// middleware
 // this if statement is for development mode only
 if (process.env.NODE_ENV === 'development') {
   // morgan is a middleware that logs the request to the console
   app.use(morgan('dev'));
 }
+
+// set security HTTP headers
+app.use(helmet());
 
 const limiter = rateLimit({
   // limit the number of requests from the same IP address
@@ -26,7 +32,14 @@ const limiter = rateLimit({
 // apply the limiter middleware to all the routes that start with /api
 app.use('/api', limiter);
 
-app.use(express.json());
+// this middleware is used to parse the data from the body of the request
+app.use(
+  express.json({
+    // this option is used to limit the amount of data that can be sent in the body of the request
+    limit: '10kb',
+  }),
+);
+// serve static files
 app.use(express.static(`${__dirname}/public`));
 
 /////////////////////////// routers
