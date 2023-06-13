@@ -15,6 +15,10 @@ exports.getAllReviews = catchAsync(async (req, res, next) => {
 });
 
 exports.createReview = catchAsync(async (req, res, next) => {
+  // if there is no tour or user in the body, then we will add it to the body
+  if (!req.body.tour) req.body.tour = req.params.tourId;
+  if (!req.body.user) req.body.user = req.user.id;
+
   const newReview = await Review.create({
     review: req.body.review,
     rating: req.body.rating,
