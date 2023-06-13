@@ -10,6 +10,10 @@ const rateLimit = require('express-rate-limit');
 
 const helmet = require('helmet');
 
+const mongoSanitize = require('express-mongo-sanitize');
+
+const xss = require('xss-clean');
+
 const app = express();
 
 //////////////////////////// middleware
@@ -39,6 +43,12 @@ app.use(
     limit: '10kb',
   }),
 );
+
+// Data sanitization against NoSQL query injection (e.g. { "email": { "$gt": "" }, "password": "password1234" })
+app.use(mongoSanitize());
+// Data sanitization against XSS (cross site scripting) attacks (e.g. <script>alert('hello');</script>)
+app.use(xss());
+
 // serve static files
 app.use(express.static(`${__dirname}/public`));
 
