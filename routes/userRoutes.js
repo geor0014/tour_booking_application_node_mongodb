@@ -29,4 +29,6 @@ router.put(
 );
 
 router.put('/updateMe', authController.protect, userController.updateMe);
+
+router.put('/deleteMe', authController.protect, userController.deleteMe);
 module.exports = router;

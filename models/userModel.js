@@ -46,6 +46,11 @@ const userSchema = new mongoose.Schema({
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpiresAt: Date,
+  active: {
+    type: Boolean,
+    default: true,
+    select: false,
+  },
 });
 
 // encrypt password before saving to database
@@ -70,6 +75,13 @@ userSchema.pre('save', function (next) {
   // subtract 1 second from the current time to make sure that the passwordChangedAt property is always set after the token is issued
   this.passwordChangedAt = Date.now() - 1000;
 
+  next();
+});
+
+userSchema.pre(/^find/, function (next) {
+  // this points to the current query
+  // check if the query has the active property set to false and if it does then don't return that document
+  this.find({ active: { $ne: false } });
   next();
 });
 
