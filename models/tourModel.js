@@ -132,6 +132,17 @@ tourSchema.pre('save', function (next) {
   next();
 });
 
+//  this will run on all find queries (e.g. Tour.findOne(), Tour.find(), etc.) but not on findById()
+tourSchema.pre(/^find/, function (next) {
+  // this will populate the guides field with the data from the User model (e.g. name, email, etc.)
+  this.populate({
+    path: 'guides', // the field that we want to populate with data from the User model
+    select: '-__v -passwordChangedAt', // exclude the __v and passwordChangedAt fields
+  });
+
+  next();
+});
+
 // QUERY MIDDLEWARE (e.g. Tour.find(), Tour.findOne(), Tour.findOneAndUpdate(), etc.): runs before the query is executed
 tourSchema.pre(/^find/, function (next) {
   // /^find/ means that all the strings that start with find will be executed
