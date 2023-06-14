@@ -129,6 +129,8 @@ tourSchema.index({
 
 tourSchema.index({ slug: 1 });
 
+tourSchema.index({ startLocation: '2dsphere' }); // this will create a geospatial index for the startLocation field in the database
+
 // we need to use a function here because we need the this keyword
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7; // this refers to the current document

@@ -20,6 +20,11 @@ router
     tourController.getMonthlyPlan,
   );
 
+// example query string: /tours-within/233/center/34.111745,-118.113491/unit/mi
+router
+  .route('/tours-within/:distance/center/:latlng/unit/:unit')
+  .get(tourController.getToursWithin);
+
 router
   .route('/')
   .get(tourController.getAllTours)
