@@ -119,6 +119,15 @@ const tourSchema = new mongoose.Schema(
   },
 );
 
+// this will create an index for the price field in the database
+tourSchema.index({
+  // indexing is used to improve the performance of the database when we query data from it (e.g. when we search for a tour with a price of 200)
+  price: 1, // 1 means ascending order, -1 means descending order
+  ratingsAverage: -1,
+});
+
+tourSchema.index({ slug: 1 });
+
 // we need to use a function here because we need the this keyword
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7; // this refers to the current document
@@ -160,6 +169,7 @@ tourSchema.pre('aggregate', function (next) {
   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } }); // unshift adds an element to the beginning of the array
   next();
 });
+
 const Tour = mongoose.model('Tour', tourSchema);
 
 module.exports = Tour;
