@@ -126,3 +126,48 @@ exports.getToursWithin = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+exports.getDistances = catchAsync(async (req, res, next) => {
+  const { latlng, unit } = req.params; // e.g. 34.111745,-118.113491/mi
+
+  const [lat, lng] = latlng.split(','); // split the string into an array of strings
+
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'Please provide latitude and longitude in the format lat,lng.',
+        400,
+      ),
+    );
+  }
+
+  const multiplier = unit === 'mi' ? 0.000621371 : 0.001; // 0.000621371 is the conversion factor from kilometers to miles, 0.001 is the conversion factor from meters to kilometers
+
+  const distances = await Tour.aggregate([
+    {
+      // geoNear requires at least one of the fields in the collection to be a geospatial index and needs to be the first stage in the pipeline
+      $geoNear: {
+        near: {
+          type: 'Point',
+          coordinates: [lng * 1, lat * 1], // convert the strings to numbers
+        },
+        distanceField: 'distance', // the field that will contain the calculated distance
+        distanceMultiplier: multiplier, // multiply the distance by the multiplier
+      },
+    },
+    {
+      // project specifies the fields to return in the documents that match the query
+      $project: {
+        distance: 1, // show the distance field
+        name: 1, // show the name field
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      data: distances,
+    },
+  });
+});
