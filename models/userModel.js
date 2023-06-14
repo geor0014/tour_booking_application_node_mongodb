@@ -53,6 +53,8 @@ const userSchema = new mongoose.Schema({
   },
 });
 
+/////////////////////////////////////////////////// COMMENTED OUT, BECAUSE SEED DATA IS ALREADY ENCRYPTED /////////////////////////////////////////////////
+////////////////////////////////////////////////// UNCOMMENT THIS CODE IF YOU WANT TO ENCRYPT PASSWORDS /////////////////////////////////////////////////
 // encrypt password before saving to database
 userSchema.pre('save', async function (next) {
   // check if password is modified or not if not then return next
